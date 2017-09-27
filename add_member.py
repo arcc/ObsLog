@@ -63,7 +63,7 @@ def create_userpointings_db(membersDB, fname, lname, userRoot):
 
 
     create_query = '''CREATE TABLE userpointings
-                      (id INTEGER PRIMARY KEY, duration REAL)'''
+                      (id INTEGER, duration REAL)'''
     usrcur.execute(create_query)
     usrconn.commit()
     usrconn.close()
