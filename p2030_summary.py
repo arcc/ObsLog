@@ -18,11 +18,13 @@ def summarize(logfile):
     
     Returns
     ======
-    log_records: list
-        list of tuples for each pointing found in the cima log file.
+    (columns, log_records): tuple
+        columns is a tuple of strings. Each string is the column title for each respective tuple element in the tuples in log_records.
+        log_records is a list of tuples for each pointing found in the cima log file.
         each element will have the following format: (timestamp, ra (deg), dec (deg), observers),
         where timestamp is a datetime.datetime object, ra & dec are floats, and observers is a string.
     '''
+    columns = ("timestamp", "ra (deg)", "dec (deg)", "observers")
 
     with open(logfile, 'r') as f:
         # get observation blocks from log file
@@ -52,7 +54,7 @@ def summarize(logfile):
 
             blk_records.append((str(x) for x in (timestamp, ra_deg, dec_deg, observers))) # appends a tuple
         log_records.extend(blk_records)
-    return log_records
+    return (columns, log_records)
 
 
 if __name__ == "__main__":
@@ -67,7 +69,7 @@ if __name__ == "__main__":
 
     of = os.path.join(args.outdir, os.path.basename(args.logfile) + '_summary.txt')
     buf = '' # write buffer
-    log_records = summarize(args.logfile)
+    cols, log_records = summarize(args.logfile)
 
     for r in log_records:
         buf += ' '.join(r) + '\n'
