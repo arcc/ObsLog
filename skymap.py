@@ -2,9 +2,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import psrcat as pc
 
-cat = pc.PSRCAT('data/psrcat.db')
-raj, decj = zip(*[x['JCOORD_RAD'] for x in cat.blocks])
-obs_entry = get_observation_entry('p2030.cimalog_20170720_summary.txt')
+#cat = pc.PSRCAT('data/psrcat.db')
+#raj, decj = zip(*[x['JCOORD_RAD'] for x in cat.blocks])
 
 def load_psr_pos(db_file):
     cat = pc.PSRCAT(db_file)
@@ -37,9 +36,14 @@ def map_projection(db_file, obs_entry):
     
     #source = ColumnDataSource(data=dict(x=raj, y=decj))
 
-    obs_RAJs = np.array([float(x['RAJ']) for x in obs_entry])
-    obs_DECJs = np.array([float(x['DECJ']) for x in obs_entry])
-
+    obs_RAJs = np.array([float(x['RAJ']) for x in obs_entry]) -180
+    obs_DECJs = np.array([float(x['DECJ']) for x in obs_entry]) -180
+    print obs_RAJs
+    print obs_DECJs
+    obs_RAJs = np.deg2rad(obs_RAJs)
+    obs_DECJs = np.deg2rad(obs_DECJs)
+    print obs_RAJs
+    print obs_DECJs
 
 
     fig = plt.figure(figsize=(8, 6))
@@ -57,5 +61,5 @@ def map_projection(db_file, obs_entry):
 
 
 if __name__ == '__main__' :
-    sp=sky_plot('data/psrcat.db')
-    sp
+    obs_entry = get_observation_entry('p2030.cimalog_20170720_summary.txt')
+    sp=map_projection('data/psrcat.db', obs_entry)
