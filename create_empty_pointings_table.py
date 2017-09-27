@@ -40,7 +40,7 @@ if __name__ == "__main__":
     c = conn.cursor()
 
     #create table
-    query = '''CREATE TABLE members
+    query = '''CREATE TABLE pointings
                (id INTEGER PRIMARY KEY, datetime TEXT,
                 instrument TEXT, rx TEXT, leadobs TEXT,
                 institution TEXT, ra REAL, dec REAL,
