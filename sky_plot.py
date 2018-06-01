@@ -85,8 +85,8 @@ def sky_plot(db_file, obs_entry):
         x_axis_label='RAJ (rad)',
         y_axis_label='DECJ (rad)')
 
-    box_color = ["navy"] * len(obs_RAJs)
-    box_alpha = [0.4,] * len(obs_RAJs)
+    box_color = "navy" #["navy"] * len(obs_RAJs)
+    box_alpha = 0.4 #[0.4,] * len(obs_RAJs)
     starplot = plot.asterisk('x', 'y', source=source, size=5)
     cover_box = plot.patches('x', 'y', source=source2, line_width=0.5,
                 color=box_color,

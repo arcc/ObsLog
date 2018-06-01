@@ -43,12 +43,13 @@ if __name__ == "__main__":
     import os
     import p2030_summary as p2030
     import argparse
-    
+
 
     p = argparse.ArgumentParser(description="Load contents of AO CIMA log file into the database.")
     p.add_argument('cimalog', type=str, help="path to CIMA log file")
     p.add_argument('--db', type=str, dest='db', default=os.path.join(os.getcwd(),'db'),
-                   help='Path to db root directory. Current default is {}'.format(os.path.join(os.getcwd(), 'db')))
+                   help='Path to db root directory. Current default is {}'.format(
+                       os.path.join(os.path.dirname(os.path.abspath(__file__)), 'db')))
     args = p.parse_args()
 
     clog = args.cimalog
