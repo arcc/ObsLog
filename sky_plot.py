@@ -7,7 +7,8 @@ from bokeh.layouts import layout
 from bokeh.models import (CustomJS, Slider, ColumnDataSource, WidgetBox, Toggle,
                           HoverTool, LogColorMapper)
 from bokeh.plotting import figure, output_file, show
-
+import sqlite3 as sql
+import os
 
 output_file('sky_plot.html')
 tools = 'pan'
@@ -16,6 +17,21 @@ def load_psr_pos(db_file):
     cat = pc.PSRCAT(db_file)
     raj, decj = zip(*[x['JCOORD_RAD'] for x in cat.blocks])
     return raj, decj
+
+def get_all_pointings(dbpath):
+    '''
+    access db at dbpath and read all pointings.
+    columns required: datetime, ra, dec
+    ra and dec are expected in degrees
+    datetime format expected is similar to: 2017-Jul-20 00:08:17
+    '''
+
+    conn = sql.connect(dbpath)
+    cur = conn.cursor()
+    query = "SELECT datetime, ra, dec FROM pointings"
+    cur.execute(query)
+    results = cur.fetchall()
+    return results
 
 def get_observation_entry(summary_file):
     f = open(summary_file, 'r')
@@ -55,27 +71,30 @@ def get_sky_cover_area(RAJ, DECJ, beam_size):
         ys[ii, :] = np.array ([y_low[ii], y_low[ii], y_up[ii], y_up[ii]])
     return xs, ys
 
-def sky_plot(db_file, obs_entry):
+def sky_plot(db_file, pointings):
+    '''
+    plot pointings in pulsar catalog pointed to by db_file.
+    plot pointings in database retrieved in pointings parameter.
+
+    THIS IS A DIRTY IMPLEMENTATION. WE SHOULD CLEAN THIS UP.
+    '''
     raj, decj = load_psr_pos(db_file)
+
     source = ColumnDataSource(data=dict(x=raj, y=decj))
 
-    obs_RAJs = np.array([float(x['RAJ']) for x in obs_entry])
-    obs_DECJs = np.array([float(x['DECJ']) for x in obs_entry])
-    cover_raj, cover_decj = get_sky_cover_area(obs_RAJs, obs_DECJs, 2.5/60.0)
-    cover_raj = np.deg2rad(cover_raj)
-    cover_decj = np.deg2rad(cover_decj)
+    # unpack pointings taken from database
+    dates, ras, decs = zip(*pointings)
 
-    observers = [x['observer'] for x in obs_entry]
-    dates = [x['date'] for x in obs_entry]
-    times = [x['time'] for x in obs_entry]
+
+    cover_raj, cover_decj = get_sky_cover_area(ras,decs, 2.5/60.0)
+    cover_raj *= np.pi/180.
+    cover_decj *= np.pi/180.
     projects = ['P2030']*len(cover_decj)
     source2 = ColumnDataSource(data=dict(
                 x=cover_raj.tolist(),
                 y=cover_decj.tolist(),
                 project=projects,
                 date=dates,
-                time=times,
-                name=observers,
                 ))
     TOOLS = "pan,wheel_zoom,reset,hover,hover,save"
     plot = figure(
@@ -85,10 +104,10 @@ def sky_plot(db_file, obs_entry):
         x_axis_label='RAJ (rad)',
         y_axis_label='DECJ (rad)')
 
-    box_color = "navy" #["navy"] * len(obs_RAJs)
-    box_alpha = 0.4 #[0.4,] * len(obs_RAJs)
+    box_color = "navy"
+    box_alpha = 0.4
     starplot = plot.asterisk('x', 'y', source=source, size=5)
-    cover_box = plot.patches('x', 'y', source=source2, line_width=0.5,
+    cover_box = plot.patches('x', 'y', source=source2, line_width=3,
                 color=box_color,
                 fill_alpha=box_alpha)
 
@@ -124,9 +143,11 @@ def sky_plot(db_file, obs_entry):
     return [plot, toggle1, toggle2]
 
 
-obs_entry = get_observation_entry('p2030.cimalog_20170720_summary.txt')
-sp = sky_plot('data/psrcat.db', obs_entry)
-
+obs_pointings = get_all_pointings(
+    os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                 'db', 'p2030', 'pointings.db'))
+print(np.shape(obs_pointings))
+sp = sky_plot('data/psrcat.db', obs_pointings)
 l = layout([
     sp[0],
     sp[1:3],

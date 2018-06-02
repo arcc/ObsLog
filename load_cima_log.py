@@ -53,7 +53,7 @@ if __name__ == "__main__":
     args = p.parse_args()
 
     clog = args.cimalog
-    projcode = "p2030" # this should NOT be hardcoded. 
+    projcode = "p2030" # this should NOT be hardcoded.
     dbroot = args.db
     memDB = os.path.join(dbroot, 'members.db')
     projDB = os.path.join(dbroot, 'p2030', 'pointings.db') # this should be determined from the projcode
